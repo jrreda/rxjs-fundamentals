@@ -7,14 +7,25 @@ describe('Exercise: Creating Observables', () => {
      * the values into the `results` array, and get the expectation below to
      * pass.
      */
-    it.skip('should create an observable out of a single value', () => {
+    it('should create an observable out of a single value', () => {
+      const example$ = of(1);
       const result = [];
+
+      example$.subscribe((value) => result.push(value));
 
       expect(result).toEqual([1]);
     });
 
-    it.skip('should take a series of objects as arguments and create an observable', () => {
+    it('should take a series of objects as arguments and create an observable', () => {
+      const example$ = of(
+        { type: 'INCREMENT', payload: 1 },
+        { type: 'RESET' },
+        { type: 'INCREMENT', payload: 2 },
+        { type: 'DECREMENT', payload: 1 },
+      );
       const result = [];
+
+      example$.subscribe(val => result.push(val))
 
       expect(result).toEqual([
         { type: 'INCREMENT', payload: 1 },
