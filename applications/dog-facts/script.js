@@ -1,4 +1,4 @@
-import { fromEvent, of, timer, merge, NEVER, concat, interval } from 'rxjs';
+import { fromEvent, of, timer, merge, NEVER, interval } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 import {
   catchError,
@@ -23,7 +23,7 @@ import {
 } from './utilities';
 
 // const endpoint = 'http://localhost:3333/api/facts';
-const endpoint = 'http://localhost:3333/api/facts?delay=3000&amp;chaos=1';
+const endpoint = 'http://localhost:3333/api/facts?delay=2000&chaos=1&flakiness=0';
 
 const fetchData$ = fromFetch(endpoint).pipe(
   mergeMap((res) => {
@@ -40,9 +40,22 @@ const fetchData$ = fromFetch(endpoint).pipe(
   }),
 );
 
-const fetch$ = fromEvent(fetchButton, 'click').pipe(
-  tap(() => clearError()),
-  exhaustMap(() => fetchData$),
-);
+const fetch$ = fromEvent(fetchButton, 'click').pipe(mapTo(true));
+const stop$ = fromEvent(stopButton, 'click').pipe(mapTo(true));
 
-fetch$.subscribe(addFacts);
+const fetchStream$ = merge(fetch$, stop$).pipe(
+  startWith(false),
+  switchMap(shouldfetch => {
+    if (shouldfetch) {
+      return timer(0, 5000).pipe(
+        tap(() => clearError),
+        tap(() => clearFacts()),
+        exhaustMap(() => fetchData$)
+      )
+    } else {
+      return NEVER
+    }
+  })
+)
+
+fetchStream$.subscribe(addFacts);
